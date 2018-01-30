@@ -1,3 +1,6 @@
+from sys import exit
+from random import randint
+
 class AVL(object):
     def __init__(self, root=None):
         self.root = root
@@ -56,8 +59,11 @@ class AVL(object):
 
     def add(self, cell):
         parent = self.root
-        while cell.parent == None:
-            if cell.val > parent.val:
+        while cell.parent is None:
+            if cell.val == parent.val:
+                parent.occurrences += 1
+                return
+            elif cell.val > parent.val:
                 if parent.right == None:
                     parent.right = cell
                     cell.parent = parent
@@ -67,6 +73,13 @@ class AVL(object):
                 parent.left = cell
                 cell.parent = parent
             else:
+                # if parent.left.parent is not parent:
+                #     printing = self.printout()
+                #     for line in printing:
+                #         print(line)
+                #     print("Quitting")
+                #     exit()
+                # assert parent.right is None or parent.right.parent == parent
                 parent = parent.left
         self.rebalance(cell)
 
@@ -77,6 +90,9 @@ class AVL(object):
             node = node.left if node.val > key else node.right
         if not node:
             print("Value was not in tree.\n---\n")
+            return
+        if node.occurrences > 1:
+            node.occurrences -= 1
             return
         if not node.right and not node.left:
             "We're a leaf, so just delete ourselves and we're done"
@@ -150,7 +166,7 @@ class AVL(object):
 
 
     def rebalance(self, cell):
-        while cell is not None:
+        while cell:
             update_height(cell)
             update_gamma(cell)
             if height(cell.right) - height(cell.left) >= 2:
@@ -162,7 +178,7 @@ class AVL(object):
                 if height(cell.left.right) > height(cell.left.left):
                     cell.left.rotate_left()
                 cell.rotate_right()
-            if cell.parent == None:
+            if cell.parent is None:
                 self.root = cell
             cell = cell.parent
 
@@ -178,6 +194,7 @@ class Cell():
         self.right = None
         self.gamma = 1
         self.height = 0
+        self.occurrences = 1
 
     def rotate_left(self):
         self.right.parent = self.parent
@@ -225,19 +242,20 @@ def update_height(cell):
 def height(cell):
     return - 1 if not cell else cell.height
 
+
 def main():
-    while True:
-        try:
-            root = int(input("First value? \n > "))
-            root = Cell(root)
-            avl = AVL(root)
-            break
-        except:
-            print("Root value must be an number.")
+
+    root = Cell(randint(0,1000))
+    print(f"Root: {root}\n---\n")
+    avl = AVL(root)
+    for _ in range(100000):
+        cell = Cell(randint(0,1000000))
+        avl.add(cell)
 
     while True:
         instr = input('''What would you like to do? (I)nsert number, (D)elete number,
-(P)rint tree, Find (L)owest, Find (H)ighest, or (Q)uit?\n> ''')
+(P)rint tree, Find (L)owest, Find (H)ighest, Show (R)oot, Show (N)umber of unique
+nodes, or (Q)uit?\n> ''')
         if instr == 'I' or instr == 'i':
             try:
                 num = input("What number would you like to insert?\n> ")
@@ -256,16 +274,22 @@ def main():
         elif instr == 'H' or instr == 'h':
             print(avl.highest(), '\n---\n')
         elif instr == 'P' or instr == 'p':
-            tab = 2 ** avl.root.height
-            mod = avl.root.height
+            # tab = 2 ** avl.root.height
+            # mod = 1
             for row in avl.printout():
-                blank = ((tab - len(row)) // 2) + mod
-                print(' ' * tab, row)
-                mod += 2
-                tab //=2
+                # print(' ' * (tab - mod), row)
+                print(row)
+                # mod *= 2
             print("\n---\n")
         elif instr == 'Q' or instr == 'q':
             return
+        elif instr == 'R' or instr == 'r':
+            print(avl.root)
+        elif instr == "N" or instr == 'n':
+            total = 0
+            for row in avl.printout():
+                total += sum(1 for node in row if node)
+            print(total)
         else:
             try:
                 instr = Cell(int(instr))
