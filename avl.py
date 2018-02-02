@@ -1,4 +1,3 @@
-from sys import exit
 from random import randint
 
 class AVL(object):
@@ -6,6 +5,8 @@ class AVL(object):
         self.root = root
 
     def printout(self):
+        '''Returns a 2D array of the tree, with each index being a 2 ** i array.
+        If no node should be at a location, it contains None instead.'''
         layout = []
         curr_row = [self.root]
         layout.append(curr_row)
@@ -25,39 +26,60 @@ class AVL(object):
             else:
                 return(layout)
 
+    def search(self, number):
+        '''Searches for var number within the tree.'''
+        check = self.root
+        while check:
+            if check.val == number:
+                print(f"{number} occurs {check.occurrences} times.")
+                return
+            elif check.val > number:
+                check = check.left
+            else:
+                check = check.right
+        print(f"{number} is not in the tree.")
+        return
+
     def lowest(self):
+        '''Returns lowest value in the tree.'''
         lowest = self.root
         while lowest.left:
             lowest = lowest.left
         return lowest
 
     def highest(self):
+        '''Returns highest value in the tree.'''
         highest = self.root
         while highest.right:
             highest = highest.right
         return highest
 
     def next_smaller(node):
-        if not node.left:
-            if node.parent and node.parent.val < node.val:
-                return node.parent
-            return
+        '''Obtains next smaller value from node. For purposes of deletion.'''
+        # if not node.left:
+        #     if node.parent and node.parent.val < node.val:
+        #         return node.parent
+        #     return
+        '''Commented segment above doesn't matter for current use of next_smaller,
+        but could feasibly come into play for other uses.'''
         smaller = node.left
         while smaller.right:
             smaller = smaller.right
         return smaller
 
     def next_bigger(node):
-        if not node.right:
-            if node.parent and node.parent.val > node.val:
-                return node.parent
-            return
+        '''Obtains next larger value from node. Currently unused.'''
+        # if not node.right:
+        #     if node.parent and node.parent.val > node.val:
+        #         return node.parent
+        #     return
         bigger = node.right
         while bigger.left:
             bigger = bigger.left
         return bigger
 
     def add(self, cell):
+        '''Adds a value to the tree.'''
         parent = self.root
         while cell.parent is None:
             if cell.val == parent.val:
@@ -73,18 +95,13 @@ class AVL(object):
                 parent.left = cell
                 cell.parent = parent
             else:
-                # if parent.left.parent is not parent:
-                #     printing = self.printout()
-                #     for line in printing:
-                #         print(line)
-                #     print("Quitting")
-                #     exit()
-                # assert parent.right is None or parent.right.parent == parent
                 parent = parent.left
         self.rebalance(cell)
 
 
     def remove(self, key):
+        '''Removes a value from the tree, and reassigns parent/child relations
+        as necessary to preserve the tree.'''
         node = self.root
         while node and node.val != key:
             node = node.left if node.val > key else node.right
@@ -93,9 +110,11 @@ class AVL(object):
             return
         if node.occurrences > 1:
             node.occurrences -= 1
+            print(f"Number of occurrences of node remaining: {node.occurrences}\n---\n")
             return
+        print("Node deleted")
         if not node.right and not node.left:
-            "We're a leaf, so just delete ourselves and we're done"
+            '''We're a leaf, so just delete ourselves and we're done'''
             if node.val > node.parent.val:
                 node.parent.right = None
             else:
@@ -136,8 +155,8 @@ class AVL(object):
                 if new_node.left:
                     new_node.left.parent = new_node.parent
                 new_node.parent.right = new_node.left
-                if node.parent:
-                    node.parent.right = new_node
+                # if node.parent:
+                #     node.parent.right = new_node
                 node.left.parent = new_node
                 node.right.parent = new_node
                 new_node.left = node.left
@@ -166,6 +185,7 @@ class AVL(object):
 
 
     def rebalance(self, cell):
+        '''Rebalances tree after insertions/deletions.'''
         while cell:
             update_height(cell)
             update_gamma(cell)
@@ -185,7 +205,8 @@ class AVL(object):
 class Cell():
 
     def __repr__(self):
-        return str(self.val)
+        return str(self.val) if self.occurrences == 1 else (
+               str(f"{self.val}({self.occurrences})"))
 
     def __init__(self, val):
         self.val = val
@@ -197,6 +218,7 @@ class Cell():
         self.occurrences = 1
 
     def rotate_left(self):
+        '''Left rotations for rebalancing a tree.'''
         self.right.parent = self.parent
         if self.parent:
             if self.val < self.parent.val:
@@ -212,6 +234,7 @@ class Cell():
         update_height(self)
 
     def rotate_right(self):
+        '''Right rotations for rebalancing a tree.'''
         self.left.parent = self.parent
         if self.parent:
             if self.val < self.parent.val:
@@ -245,7 +268,7 @@ def height(cell):
 
 def main():
 
-    root = Cell(randint(0,1000))
+    root = Cell(randint(1, 100))
     print(f"Root: {root}\n---\n")
     avl = AVL(root)
     for _ in range(100000):
@@ -255,7 +278,7 @@ def main():
     while True:
         instr = input('''What would you like to do? (I)nsert number, (D)elete number,
 (P)rint tree, Find (L)owest, Find (H)ighest, Show (R)oot, Show (N)umber of unique
-nodes, or (Q)uit?\n> ''')
+nodes, (S)earch for a particular number, or (Q)uit?\n> ''')
         if instr == 'I' or instr == 'i':
             try:
                 num = input("What number would you like to insert?\n> ")
@@ -268,7 +291,7 @@ nodes, or (Q)uit?\n> ''')
                 delete = int(input("What number would you like to delete?\n> "))
                 avl.remove(delete)
             except:
-                print("Numbers must be integers.")
+                print("Numbers must be integers.\n---\n")
         elif instr == 'L' or instr == 'l':
             print(avl.lowest(), '\n---\n')
         elif instr == 'H' or instr == 'h':
@@ -290,6 +313,12 @@ nodes, or (Q)uit?\n> ''')
             for row in avl.printout():
                 total += sum(1 for node in row if node)
             print(total)
+        elif instr == 'S' or instr == 's':
+            try:
+                number = int(input("What number are you searching for?\n> "))
+                avl.search(number)
+            except:
+                print("Numbers must be in integer form\n---\n")
         else:
             try:
                 instr = Cell(int(instr))
@@ -297,4 +326,5 @@ nodes, or (Q)uit?\n> ''')
             except:
                 print("Please make a valid selection.\n")
 
-main()
+if __name__ == "__main__":
+    main()
