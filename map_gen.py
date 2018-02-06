@@ -9,10 +9,10 @@ def DFS(x, y, layout, size):
     for _ in range(4):
         i = randint(0, len(neighbors) - 1)
         nx, ny = neighbors[i]
-        if x+nx == size - 1 or y+ny == size - 1:
+        if x + nx == size - 1 or y + ny == size - 1:
             parent[(x+nx, y+ny)] = (x, y)
             return (x+nx, y+ny)
-        elif x+nx in range(size) and y+ny in range(size) and (
+        elif x + nx in range(size) and y + ny in range(size) and (
                           (x+nx, y+ny) not in parent):
             parent[(x+nx, y+ny)] = (x, y)
             end_check = DFS(x+nx, y+ny, layout, size)
