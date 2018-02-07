@@ -4,9 +4,9 @@
 #include <stdbool.h>
 
 typedef struct Cell {
-    struct Cell* left;
-    struct Cell* right;
-    struct Cell* parent;
+    struct Cell *left;
+    struct Cell *right;
+    struct Cell *parent;
     int val;
     int occurrences;
     int gamma;
@@ -30,7 +30,9 @@ int height(struct Cell *cell); //Returns a cell's height, or -1 if no cell.
 int gamma(struct Cell *cell); //Returns a cell's gamma, or 0 if no cell.
 void delete(int key, struct Cell *cell); //Searches tree for key, deletes it (1x) if found.
 struct Cell *next_smaller(struct Cell *cell); //returns next smaller cell from input.
-void print();
+void print(); //prints the tree. Needs refactoring.
+int find_largest(struct Cell *cell);
+int find_smallest(struct Cell *cell);
 
 int main(void) {
 
@@ -56,7 +58,9 @@ int main(void) {
 
         add_cell(root, new);
     }
-    //printf("Root: %d\n", root->val);
+    printf("Root: %d\n", root->val);
+    printf("Largest: %d\n", find_largest(root));
+    printf("Smallest: %d\n", find_smallest(root));
 //    print();
     return 0;
 }
@@ -131,6 +135,21 @@ int height(struct Cell *cell) {
     if (!cell) { return -1; }
     return cell->height;
 }
+
+int find_largest(struct Cell *cell) {
+    while (cell->right) {
+        cell = cell->right;
+    }
+    return cell->val;
+}
+
+int find_smallest(struct Cell *cell) {
+    while (cell->left) {
+        cell = cell->left;
+    }
+    return cell->val;
+}
+
 
 int gamma(struct Cell *cell) {
     if (!cell) { return 0; }
@@ -224,7 +243,7 @@ void delete(int key, struct Cell *node) {
         }
         rebalance(node->parent);
     } else {
-        struct Cell* new_node = next_smaller(node);
+        struct Cell *new_node = next_smaller(node);
         if (new_node->parent != node) {
             if (new_node->left) {
                 new_node->left->parent = new_node->parent;
