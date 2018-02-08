@@ -3,6 +3,8 @@
 #include <time.h>
 #include <stdbool.h>
 
+#define MAXNUM 20
+
 typedef struct Cell {
     struct Cell *left;
     struct Cell *right;
@@ -31,12 +33,12 @@ int gamma(struct Cell *cell); //Returns a cell's gamma, or 0 if no cell.
 void delete(int key, struct Cell *cell); //Searches tree for key, deletes it (1x) if found.
 struct Cell *next_smaller(struct Cell *cell); //returns next smaller cell from input.
 void print(); //prints the tree. Needs refactoring.
-int find_largest(struct Cell *cell);
-int find_smallest(struct Cell *cell);
+int find_largest(struct Cell *cell); //Finds largest value in tree.
+int find_smallest(struct Cell *cell); //Finds smallest value in tree.
+int get_instr(char *instr, int limit);
 
 int main(void) {
 
-//    struct Cell *root;
     root = (struct Cell*) malloc(sizeof(struct Cell));
     root->val = 10;
     root->occurrences = 1;
@@ -61,9 +63,58 @@ int main(void) {
     printf("Root: %d\n", root->val);
     printf("Largest: %d\n", find_largest(root));
     printf("Smallest: %d\n", find_smallest(root));
+
+    // while (true) {
+    printf("What would you like to do? (I)nsert number, (D)elete number, ");
+    printf("(P)rint tree, Find (L)owest,\nFind (H)ighest, Show (R)oot, ");
+    printf("Show (N)umber of unique nodes, (S)earch for a particular number,\n");
+    printf("or (Q)uit?\n");
+
+/* TK TK TK TK TK */
+
+
+    // }
 //    print();
     return 0;
 }
+
+int get_instr(char *instr, int lim) {
+    int c, getch(void);
+    void ungetch(int);
+    char *i = instr;
+
+    while (isspace(c = getch())) { ; }
+    if (c != EOF) {
+        *i++ = c;
+    }
+    if (isalpha(c)) { // If first char is alpha, read that as instr; ignore the rest
+        *i = '\0';
+        return c;
+    }
+    for (; --lim > 0; i++) {
+        if (!isalnum(*i = getch())) {
+            ungetch(*i);
+            break;
+        }
+    }
+    *w = '\0';
+    return word[0];
+}
+
+#define BUFSIZE 20
+char buf[BUFSIZE];
+int bufp = 0;
+
+void ungetch(int c) {
+    if (bufp >= BUFSIZE) {
+        printf("Ungetch: too many characters\n");
+    } else {
+        buf[bufp++] = c;
+    }
+}
+
+int getch(void) {}
+
 
 void add_cell(struct Cell *parent, struct Cell *new) {
     /* Given a new cell (new), we go down the tree from the root until we find
