@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#define MAXNUM 20
+#define MAXNUM 10
+#define MAXNODESIZE 1000000
+#define INITIALNODES 100000
 
 typedef struct Cell {
     struct Cell *left;
@@ -37,22 +39,23 @@ struct Cell *next_smaller(struct Cell *cell); //returns next smaller cell from i
 void print(); //prints the tree. Needs refactoring.
 int find_largest(struct Cell *cell); //Finds largest value in tree.
 int find_smallest(struct Cell *cell); //Finds smallest value in tree.
-char * get_instr(char *instr, int limit);
-void search(int num, struct Cell *cell);
-int number_of_nodes(struct Cell *cell);
+char * get_instr(char *instr, int limit); //Reads user instructions.
+void search(int num, struct Cell *cell); //searches for a number in the tree.
+int number_of_nodes(struct Cell *cell); //Returns # of unique values in the tree.
 
 int main(void) {
 
+    srand(time(NULL));
+
     root = (struct Cell*) malloc(sizeof(struct Cell));
-    root->val = 10;
+    root->val = rand() % MAXNUM;
     root->occurrences = 1;
     root->gamma = 1;
     root->height = 0;
     root->parent = root->left = root->right = NULL;
 
-    srand(time(NULL));
-    for (int i = 0; i < 100000; ++i) {
-        int r = rand() % 1000000;
+    for (int i = 0; i < INITIALNODES; ++i) {
+        int r = rand() % MAXNODESIZE;
 
         struct Cell *new;
         new = (struct Cell*) malloc(sizeof(struct Cell));
@@ -88,8 +91,14 @@ int main(void) {
                     int i = atoi(num);
                     struct Cell *new;
                     new = (struct Cell*) malloc(sizeof(struct Cell));
+                    new->val = i;
+                    new->occurrences = 1;
+                    new->gamma = 1;
+                    new->height = 0;
+                    new->left = new->right = new->parent = NULL;
                     add_cell(root, new);
                 }
+                printf("Cell inserted.\n---\n");
                 break;
             case 'p':
             case 'P':
@@ -191,7 +200,7 @@ int number_of_nodes(struct Cell *cell) {
     } else if (!cell->left && !cell->right) {
         return 1;
     } else {
-        return number_of_nodes(cell->left) + number_of_nodes(cell->right);
+        return number_of_nodes(cell->left) + number_of_nodes(cell->right) + 1;
     }
 }
 
@@ -434,18 +443,20 @@ void print() {
     curr = (struct pair[1]){initial};
     int row_length = 1;
     bool flag = true;
+    bool should_print = false;
 
     while (flag) {
         flag = false;
+        should_print = false;
         struct pair *new_array = malloc(row_length * 2 * sizeof(struct pair));
 
         for (int i = 0, j = 0; i < row_length; ++i) {
             if (curr[i].first == true) {
                 new_array[j++] = (curr[i].second->left) ?
-                    (struct pair){true, curr[i].second->left} :
+                    (should_print = true), (struct pair){true, curr[i].second->left} :
                     (struct pair){false, curr[i].second};
                 new_array[j++] = (curr[i].second->right) ?
-                    (struct pair){true, curr[i].second->right} :
+                    (should_print = true), (struct pair){true, curr[i].second->right} :
                     (struct pair){false, curr[i].second};
                 flag = true;
             } else {
@@ -456,13 +467,18 @@ void print() {
         if (flag == true) {
             for (int i = 0; i < row_length; ++i) {
                 if (curr[i].first == true) {
-                    printf("%d, ", curr[i].second->val);
+                    printf(i < row_length - 1 ?
+                           "%d, " : "%d", curr[i].second->val);
                 } else {
-                    printf("NaN, ");
+                    printf((i < row_length - 1) ?
+                           "NaN, " : "NAN");
                 }
             }
         }
         printf("\n");
+        if (should_print == false) {
+            return;
+        }
         curr = new_array;
         row_length *= 2;
     }
