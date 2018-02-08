@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #define MAXNUM 20
 
@@ -31,11 +32,14 @@ void rotate_right(struct Cell *cell); //Rotates cells, part of rebalancing.
 int height(struct Cell *cell); //Returns a cell's height, or -1 if no cell.
 int gamma(struct Cell *cell); //Returns a cell's gamma, or 0 if no cell.
 void delete(int key, struct Cell *cell); //Searches tree for key, deletes it (1x) if found.
+//void delete(int key); //Searches tree for key, deletes it (1x) if found.
 struct Cell *next_smaller(struct Cell *cell); //returns next smaller cell from input.
 void print(); //prints the tree. Needs refactoring.
 int find_largest(struct Cell *cell); //Finds largest value in tree.
 int find_smallest(struct Cell *cell); //Finds smallest value in tree.
-int get_instr(char *instr, int limit);
+char * get_instr(char *instr, int limit);
+void search(int num, struct Cell *cell);
+int number_of_nodes(struct Cell *cell);
 
 int main(void) {
 
@@ -60,25 +64,89 @@ int main(void) {
 
         add_cell(root, new);
     }
-    printf("Root: %d\n", root->val);
-    printf("Largest: %d\n", find_largest(root));
-    printf("Smallest: %d\n", find_smallest(root));
 
-    // while (true) {
+
+    char instr[MAXNUM];
+    char *num;
     printf("What would you like to do? (I)nsert number, (D)elete number, ");
     printf("(P)rint tree, Find (L)owest,\nFind (H)ighest, Show (R)oot, ");
     printf("Show (N)umber of unique nodes, (S)earch for a particular number,\n");
     printf("or (Q)uit?\n");
+    while (*get_instr(instr, MAXNUM) != EOF) {
 
-/* TK TK TK TK TK */
+        switch ((int) instr[0]) {
+            case 'n':
+            case 'N':
+                printf("Total nodes: %d\n---\n", number_of_nodes(root));
+                break;
+            case 'i':
+            case 'I':
+                num = get_instr(instr, MAXNUM);
+                if(!isdigit(num[0])) {
+                    printf("Inserted valued must be numbers.\n---\n");
+                } else {
+                    int i = atoi(num);
+                    struct Cell *new;
+                    new = (struct Cell*) malloc(sizeof(struct Cell));
+                    add_cell(root, new);
+                }
+                break;
+            case 'p':
+            case 'P':
+                print();
+                break;
+            case 'l':
+            case 'L':
+                printf("Smallest: %d\n", find_smallest(root));
+                break;
+            case 'h':
+            case 'H':
+                printf("Largest: %d\n", find_largest(root));
+                break;
+            case 'r':
+            case 'R':
+                printf("Root: %d\n", root->val);
+                break;
+            case 'd':
+            case 'D':
+                num = get_instr(instr, MAXNUM);
+                if(!isdigit(num[0])) {
+                    printf("Values must be numbers.\n---\n");
+                } else {
+                    int i = atoi(num);
+                    delete(i, root);
+                }
+                break;
+            case 's':
+            case 'S':
+                num = get_instr(instr, MAXNUM);
+                if (isdigit(num[0])) {
+                    int i = atoi(num);
+                    search(i, root);
+                } else {
+                    printf("Search values must be numbers.\n---\n");
+                }
+                break;
+            case 'q':
+            case 'Q':
+                return 0;
+            default:
+                printf("Please give a valid instruction.\n---\n");
+                break;
 
+        }
+        printf("What would you like to do? (I)nsert number, (D)elete number, ");
+        printf("(P)rint tree, Find (L)owest,\nFind (H)ighest, Show (R)oot, ");
+        printf("Show (N)umber of unique nodes, (S)earch for a particular number,\n");
+        printf("or (Q)uit?\n");
+    }
 
     // }
 //    print();
     return 0;
 }
 
-int get_instr(char *instr, int lim) {
+char * get_instr(char *instr, int lim) {
     int c, getch(void);
     void ungetch(int);
     char *i = instr;
@@ -89,7 +157,7 @@ int get_instr(char *instr, int lim) {
     }
     if (isalpha(c)) { // If first char is alpha, read that as instr; ignore the rest
         *i = '\0';
-        return c;
+        return instr;
     }
     for (; --lim > 0; i++) {
         if (!isalnum(*i = getch())) {
@@ -97,8 +165,8 @@ int get_instr(char *instr, int lim) {
             break;
         }
     }
-    *w = '\0';
-    return word[0];
+    *i = '\0';
+    return instr;
 }
 
 #define BUFSIZE 20
@@ -113,8 +181,19 @@ void ungetch(int c) {
     }
 }
 
-int getch(void) {}
+int getch(void) {
+    return (bufp > 0) ? buf[--bufp] : getchar();
+}
 
+int number_of_nodes(struct Cell *cell) {
+    if (!cell) {
+        return 0;
+    } else if (!cell->left && !cell->right) {
+        return 1;
+    } else {
+        return number_of_nodes(cell->left) + number_of_nodes(cell->right);
+    }
+}
 
 void add_cell(struct Cell *parent, struct Cell *new) {
     /* Given a new cell (new), we go down the tree from the root until we find
@@ -255,6 +334,19 @@ struct Cell *next_smaller(struct Cell *cell) {
     return cell;
 }
 
+void search(int num, struct Cell *node) {
+    while (node && node->val != num) {
+        node = (node->val > num) ? node->left : node->right;
+    }
+    if (!node) {
+        printf("%d is not in the tree.\n", num);
+    } else {
+        printf("%d occurs in the tree %d times.\n", num, node->occurrences);
+    }
+    return;
+}
+
+// void delete(int key) {
 void delete(int key, struct Cell *node) {
     while (node && node->val != key) {
         node = (node->val > key) ? node->left : node->right;
@@ -263,6 +355,10 @@ void delete(int key, struct Cell *node) {
         printf("Value was not in tree.\n");
         return;
     }
+    // struct Cell* node = search(key, root);
+    // if (!node) {
+    //     return;
+    // }
     if (node->occurrences > 1) {
         --node->occurrences;
         printf("Single value deleted. Remaining occurences: %d\n", node->occurrences);
